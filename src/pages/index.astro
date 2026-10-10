@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import QuarterStage from '../components/QuarterStage.astro';
+import PdfModal from '../components/PdfModal.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Sabbath School · Descargador de PDFs (API Adventech)">
+  <Header />
+
+  <div class="main-layout">
+    <Sidebar />
+    <QuarterStage />
+  </div>
+
+  <PdfModal />
+  <Toast />
+</Layout>
+
+<script>
+  import { initApp } from '../scripts/app';
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initApp());
+  } else {
+    initApp();
+  }
+</script>
