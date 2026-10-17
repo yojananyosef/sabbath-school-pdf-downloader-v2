@@ -202,10 +202,7 @@ function renderQuarterliesList(): void {
       if (state.qid !== q.id) {
         selectQuarter(q.id);
         // On mobile, close sidebar after selecting
-        const sidebar = document.getElementById('sidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        sidebar?.classList.remove('open');
-        backdrop?.classList.remove('open');
+        drawer.close();
       }
     };
 
@@ -977,6 +974,45 @@ async function loadQuarterlies(): Promise<void> {
   }
 }
 
+// Sidebar drawer (mobile): open/close with scroll lock, focus handling
+// and Escape support.
+const drawer = {
+  isOpen(): boolean {
+    return document.getElementById('sidebar')?.classList.contains('open') ?? false;
+  },
+  open(): void {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const toggle = document.getElementById('sidebarToggle');
+    if (!sidebar || !backdrop) return;
+
+    sidebar.classList.add('open');
+    backdrop.classList.add('open');
+    toggle?.setAttribute('aria-expanded', 'true');
+    // Stop the page behind the drawer from scrolling with the finger.
+    document.body.style.overflow = 'hidden';
+    document.getElementById('sidebarClose')?.focus();
+  },
+  close(): void {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const toggle = document.getElementById('sidebarToggle');
+    if (!sidebar) return;
+
+    sidebar.classList.remove('open');
+    backdrop?.classList.remove('open');
+    toggle?.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  },
+  toggle(): void {
+    if (this.isOpen()) {
+      this.close();
+    } else {
+      this.open();
+    }
+  }
+};
+
 // Global initialization
 export function initApp(): void {
   // Search input binding
@@ -1001,6 +1037,24 @@ export function initApp(): void {
       loadQuarterlies();
     });
   }
+
+  // On narrow screens the language picker can only afford the short code;
+  // the full name would push the header past the viewport.
+  const compactLangQuery = window.matchMedia('(max-width: 640px)');
+  const syncLangLabels = () => {
+    const compact = compactLangQuery.matches;
+    langSelect?.querySelectorAll('option').forEach(opt => {
+      const name = opt.dataset.name;
+      opt.textContent = compact || !name ? (opt.value.toUpperCase()) : `${opt.value.toUpperCase()} · ${name}`;
+    });
+    if (langSelect) {
+      langSelect.title = compact
+        ? `Idioma de estudio: ${langSelect.options[langSelect.selectedIndex]?.dataset.name ?? state.lang}`
+        : 'Idioma de estudio';
+    }
+  };
+  syncLangLabels();
+  compactLangQuery.addEventListener('change', syncLangLabels);
 
   // Reload button
   const reloadBtn = document.getElementById('reload');
@@ -1035,6 +1089,11 @@ export function initApp(): void {
   // Keyboard navigation
   window.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      if (drawer.isOpen()) {
+        drawer.close();
+        document.getElementById('sidebarToggle')?.focus();
+        return;
+      }
       closeModal();
     }
     // '/' or 'Ctrl+K' focuses search if not currently in an input
@@ -1050,17 +1109,27 @@ export function initApp(): void {
 
   // Mobile sidebar toggle
   const toggleBtn = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
+  const closeBtn = document.getElementById('sidebarClose');
 
-  if (toggleBtn && sidebar && backdrop) {
-    const toggleSidebar = () => {
-      sidebar.classList.toggle('open');
-      backdrop.classList.toggle('open');
-    };
-    toggleBtn.onclick = toggleSidebar;
-    backdrop.onclick = toggleSidebar;
+  if (toggleBtn && backdrop) {
+    toggleBtn.onclick = () => drawer.toggle();
+    backdrop.onclick = () => drawer.close();
   }
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      drawer.close();
+      toggleBtn?.focus();
+    };
+  }
+
+  // Leaving the drawer breakpoint on rotate/resize must never strand the
+  // body in the scroll-locked state.
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 980 && drawer.isOpen()) {
+      drawer.close();
+    }
+  });
 
   // Start initial load
   loadQuarterlies();

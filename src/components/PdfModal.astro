@@ -70,6 +70,8 @@
     width: 100%;
     max-width: 1100px;
     height: 90vh;
+    height: 90dvh;
+    max-height: 100dvh;
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
@@ -115,6 +117,7 @@
 
   .modal-body {
     flex: 1;
+    min-height: 0;
     background: #181d26;
     display: flex;
   }
@@ -122,6 +125,7 @@
   .modal-body iframe {
     width: 100%;
     height: 100%;
+    min-height: 240px;
     border: 0;
     background: #ffffff;
   }
@@ -129,21 +133,61 @@
   .btn-close {
     font-size: 16px;
     font-weight: bold;
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     padding: 0;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   @media (max-width: 640px) {
     .modal-backdrop {
-      padding: 10px;
+      padding: 0;
     }
+
+    /* Full-bleed on phones: the 90dvh dialog plus padding used to push the
+       header actions past the bottom of the screen. */
     .modal-dialog {
-      height: 96vh;
+      height: 100dvh;
+      max-height: 100dvh;
+      border-radius: 0;
+      border: 0;
     }
-    .modal-actions span {
+
+    .modal-header {
+      padding: 10px 12px;
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .modal-title {
+      font-size: 13px;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .modal-actions {
+      gap: 6px;
+    }
+
+    /* Collapse only the secondary action; "Abrir" and the close button
+       stay labelled and tappable. */
+    .modal-actions #mcopy span {
       display: none;
+    }
+
+    .modal-actions .btn {
+      min-height: 38px;
+    }
+
+    .modal-actions #mclose {
+      order: -1;
+      width: 38px;
+      height: 38px;
     }
   }
 </style>

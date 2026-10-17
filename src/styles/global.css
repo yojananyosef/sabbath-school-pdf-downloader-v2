@@ -38,6 +38,17 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Mobile Chrome inflates the layout viewport to match overflowing content,
+     which then resizes every position:fixed overlay (drawer, modal, toasts)
+     to the wrong width. Clipping at the root prevents that cascade.
+     `clip` (not `hidden`) avoids creating a scroll container, so
+     position:sticky keeps working. */
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -55,6 +66,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 a {
@@ -94,6 +106,8 @@ button, input, select {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
+  min-width: 0;
 }
 
 .main-layout {
@@ -106,12 +120,16 @@ button, input, select {
   gap: 20px;
   align-items: start;
   flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 980px) {
   .main-layout {
-    grid-template-columns: 1fr;
-    padding: 14px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
   }
 }
 
@@ -372,6 +390,9 @@ button, input, select {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .year-chip:hover {
@@ -787,37 +808,321 @@ button, input, select {
   word-break: break-all;
 }
 
+/* ============================================================
+   Responsive — tablets and below
+   ============================================================ */
 @media (max-width: 768px) {
+  /* --- Quarter header: cover sits beside the badges, not stranded
+         on its own row, which used to waste ~90px of vertical space. --- */
   .quarter-header-card {
-    flex-direction: column;
-    padding: 16px;
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 10px;
+    padding: 14px;
+    align-items: start;
   }
+
+  /* Flatten the info wrapper so its children become grid items and can
+     share the first row with the cover. */
+  .quarter-info-box {
+    display: contents;
+  }
+
   .quarter-cover-box {
-    width: 76px;
-    height: 76px;
+    grid-column: 1;
+    grid-row: 1;
+    width: 64px;
+    height: 64px;
   }
+
+  .quarter-badges {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    margin-bottom: 0;
+  }
+
   .quarter-title {
-    font-size: 18px;
+    grid-column: 1 / -1;
+    font-size: 19px;
+    line-height: 1.2;
   }
+
+  .quarter-date,
+  .quarter-desc-container,
+  .quarter-action-buttons,
+  .warning-banner {
+    grid-column: 1 / -1;
+  }
+
+  .quarter-desc-container {
+    margin-bottom: 12px;
+  }
+
+  .quarter-desc {
+    font-size: 13px;
+  }
+
   .quarter-action-buttons {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
+
+  .quarter-action-buttons .btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .warning-banner {
+    align-items: flex-start;
+    padding: 10px 12px;
+  }
+
+  .warning-banner svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* --- Download activity card --- */
+  .download-activity-card {
+    padding: 12px;
+  }
+
+  .activity-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .activity-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .activity-controls .btn {
+    min-height: 36px;
+  }
+
+  .log-terminal {
+    max-height: 140px;
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .log-time {
+    width: 52px;
+  }
+
+  /* --- Lesson card: actions become an even full-width row instead of
+         small right-aligned buttons floating over empty space. --- */
   .lesson-header {
     flex-wrap: wrap;
-    padding: 10px 14px;
+    padding: 10px 12px;
+    gap: 10px;
   }
+
+  .lesson-num {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .lesson-title {
+    font-size: 14px;
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .lesson-dates {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+  }
+
   .lesson-actions {
     width: 100%;
-    justify-content: flex-end;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
   }
-  .pdf-row {
-    flex-wrap: wrap;
-  }
-  .pdf-actions {
+
+  .lesson-actions .btn {
     width: 100%;
-    justify-content: flex-end;
-    margin-top: 4px;
+    min-height: 40px;
+    padding: 8px 6px;
+    font-size: 12.5px;
+  }
+
+  /* --- PDF rows --- */
+  .lesson-pdfs-list {
+    padding: 6px 12px 10px;
+  }
+
+  .pdf-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    column-gap: 10px;
+    row-gap: 8px;
+    padding: 10px 0;
+  }
+
+  .pdf-icon-badge {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .pdf-meta {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .pdf-status {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+    align-self: center;
+  }
+
+  .pdf-name {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .pdf-actions {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .pdf-actions .btn {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 6px;
+  }
+
+  /* --- Raw JSON blocks --- */
+  .lesson-raw-details summary {
+    padding: 10px 12px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .lesson-raw-details pre {
+    padding: 0 12px 12px;
+  }
+
+  .quarter-raw-card {
+    padding: 12px;
+  }
+
+  .raw-card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ============================================================
+   Responsive — phones
+   ============================================================ */
+@media (max-width: 560px) {
+  /* Comfy tap targets across the board. */
+  .btn {
+    min-height: 40px;
+  }
+
+  .btn-sm {
+    padding: 8px 10px;
+  }
+
+  .year-chip {
+    padding: 7px 12px;
+    font-size: 11.5px;
+    min-height: 34px;
+  }
+
+  .badge {
+    padding: 4px 9px;
+  }
+
+  .quarter-item {
+    padding: 12px;
+  }
+
+  .empty-state {
+    padding: 44px 16px;
+  }
+}
+
+/* ============================================================
+   Touch devices — sized by input type, not only by width, so
+   landscape phones and tablets get the same comfortable targets.
+   ============================================================ */
+@media (pointer: coarse) {
+  .btn-sm {
+    padding: 8px 12px;
+  }
+
+  .year-chip {
+    padding: 7px 12px;
+    min-height: 34px;
+  }
+
+  /* Give the "Leer más" text link a real tap area. */
+  .btn-link {
+    padding: 10px 0;
+    margin-top: 0;
+  }
+
+  .lesson-raw-details summary {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .quarter-item {
+    padding: 12px;
+  }
+
+  /* Ghost buttons sit next to filled ones inside the same row; without a
+     surface they read as plain text rather than something tappable. */
+  .lesson-actions .btn-ghost,
+  .pdf-actions .btn-ghost {
+    background: var(--bg-surface);
+    border-color: var(--border);
+  }
+
+  .quarter-action-buttons .btn-ghost {
+    background: var(--bg-surface);
+    border-color: var(--border);
+  }
+}
+
+/* ============================================================
+   Landscape phones — reclaim the vertical space a two-row
+   header would otherwise eat.
+   ============================================================ */
+@media (max-height: 520px) and (orientation: landscape) {
+  .quarter-header-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+    padding: 10px 12px;
+  }
+
+  .quarter-cover-box {
+    width: 56px;
+    height: 56px;
+  }
+
+  .quarter-desc-container {
+    display: none;
   }
 }
 
